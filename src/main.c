@@ -13,28 +13,114 @@ static const uint32_t JUMP_MILLIS = 750;
 static const double GRAVITY = -0.6;
 
 typedef struct player {
-    cog_sprite* s;
-    cog_sprite_id sid;
+    //cog_sprite* s;
+    cog_rect* s;
+    cog_rect_id sid;
 } player;
 
+typedef struct flag {
+    cog_sprite_id sid;
+    cog_rect_id pole_id;
+} flag;
+
+typedef struct platform {
+    cog_rect_id sid;
+} platform;
+
 static player p;
+static flag f;
+static cog_list platforms;
 
 void init() {
-		p.sid = cog_sprite_add("../assets/c0.png");
+		//p.sid = cog_rect_add("../assets/c0.png");
+		// Player
+		p.sid = cog_rect_add();
+    cog_rect_set(p.sid, (cog_rect) {
+        .pos=(cog_pos2) {
+            .x=-0.9, .y=-0.35
+        },
+        .dim=(cog_dim2) {
+            .w=0.05, .h=0.1
+        },
+        .col=(cog_color) {
+            .r=0.5,.g=1,.b=1,.a=1
+        },
+        .rot=COG_PI/2,
+				.layer = 5
+    });
+		p.s = cog_rect_get(p.sid);
+
+		// Flag
+		f.sid = cog_sprite_add("../assets/flags/greece.png");
+		double w = 0.54;
     cog_sprite_set(p.sid, (cog_sprite) {
         .dim=(cog_dim2) {
-            .w=0.1, .h=0.1
+            .w=w, .h=w * 0.6
         },
-        .rot=COG_PI/2
+        .pos=(cog_pos2) {
+            .x=0.05, .y=0.5
+        }
     });
-		p.s = cog_sprite_get(p.sid);
+		cog_sprite* s = cog_sprite_get(p.sid);
+		f.pole_id = cog_rect_add();
+    cog_rect_set(f.pole_id, (cog_rect) {
+        .dim=(cog_dim2) {
+            .w=0.01, .h=0.65
+        },
+        .pos=(cog_pos2) {
+            .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+        },
+        .col=(cog_color) {
+            .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+        },
+        .rot=COG_PI/2,
+        .layer=0
+    });
+		
+		// Platforms
+    cog_list_init(&platforms, sizeof(platform));
+
+		cog_rect_id pl_0 = cog_rect_add();
+		cog_rect_set(pl_0, (cog_rect) {
+        .dim=(cog_dim2) {
+            .w=0.3, .h=0.05
+        },
+        .rot=COG_PI/2,
+				.pos=(cog_pos2) {
+						.x=-0.7, .y=-0.5
+				},
+        .col=(cog_color) {
+            .r=1,.g=1,.b=1,.a=1
+        }
+		});
+		
+		cog_list_append(&platforms, &(platform) {
+			.sid=pl_0
+			});
+
+		cog_rect_id pl_1 = cog_rect_add();
+		cog_rect_set(pl_1, (cog_rect) {
+        .dim=(cog_dim2) {
+            .w=0.5, .h=0.05
+        },
+        .rot=COG_PI/2,
+				.pos=(cog_pos2) {
+						.x=0.6, .y=-0.5
+				},
+        .col=(cog_color) {
+            .r=1,.g=1,.b=1,.a=1
+        }
+		});
+		cog_list_append(&platforms, &(platform) {
+			.sid=pl_1
+			});
 }
 
 void update() {
 }
 
 int main(int argc, char* argv[]) {
-    cog_init(.fullscreen = false, .debug=false, .window_w=600, .window_h=600);
+    cog_init(.fullscreen = false, .debug=false, .window_w=800, .window_h=600);
 		bool jumping = false;
 		bool moving = false;
 		uint32_t jump_time = 0;
@@ -52,7 +138,6 @@ int main(int argc, char* argv[]) {
 							if(p.s->pos.y < 0.0) {
 									jumping = false;
 									p.s->vel.y = 0.0;
-									cog_debugf("hi");
 							}
 						}
 				}
