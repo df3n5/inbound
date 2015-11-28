@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(1gam C)
 
-add_definitions(-std=c99 -DDEBUG -Wall)
+add_definitions(-std=c99 -DDEBUG -Wall -g)
 
 set(CMAKE_BUILD_TYPE Debug)
 

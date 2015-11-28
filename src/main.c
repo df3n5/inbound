@@ -7,13 +7,15 @@
 
 static const double X_SPEED = 0.5;
 static const double X_SPEED_AIR = 0.7;
-static const double X_FRICTION = 0.0002;
+static const double X_FRICTION = 0.1;
 
 static double Y_LEVEL = -0.5;
 static double PLATFORM_HEIGHT = 0.05;
 static const double JUMP_SPEED = 0.6;
 static const uint32_t JUMP_MILLIS = 750;
 static const double GRAVITY = -0.6;
+
+static int32_t level;
 
 static cog_pos2 START_POS = (cog_pos2) { .x=-0.9, .y=-0.35 };
 
@@ -42,6 +44,7 @@ static cog_list platforms;
 static cog_list traps;
 
 void init() {
+    cog_clear();
     //p.sid = cog_rect_add("../assets/c0.png");
     // Player
     p.sid = cog_rect_add();
@@ -58,128 +61,868 @@ void init() {
             });
     p.s = cog_rect_get(p.sid);
 
-    // Flag
-    f.sid = cog_sprite_add("../assets/flags/greece.png");
-    double w = 0.54;
-    cog_sprite_set(p.sid, (cog_sprite) {
-            .dim=(cog_dim2) {
-            .w=w, .h=w * 0.6
-            },
-            .pos=(cog_pos2) {
-            .x=-0.4, .y=0.5
-            }
-            });
-    cog_sprite* s = cog_sprite_get(p.sid);
-    f.pole_id = cog_rect_add();
-    cog_rect_set(f.pole_id, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.01, .h=0.65
-            },
-            .pos=(cog_pos2) {
-            .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
-            },
-            .col=(cog_color) {
-            .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
-            },
-            .rot=COG_PI/2,
-            .layer=0
-            });
+    if(level == 0) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/turkey.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
 
-    // Platforms
-    cog_list_init(&platforms, sizeof(platform));
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
 
-    cog_rect_id pl_0 = cog_rect_add();
-    cog_rect_set(pl_0, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.1, .h=PLATFORM_HEIGHT
-            },
-            .rot=COG_PI/2,
-            .pos=(cog_pos2) {
-            .x=-0.9, .y=-0.5
-            },
-            .col=(cog_color) {
-            .r=1,.g=1,.b=1,.a=1
-            }
-            });
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
 
-    cog_list_append(&platforms, &(platform) {
-            .sid=pl_0
-            });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
 
-    cog_rect_id pl_1 = cog_rect_add();
-    cog_rect_set(pl_1, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.1, .h=PLATFORM_HEIGHT
-            },
-            .rot=COG_PI/2,
-            .pos=(cog_pos2) {
-            .x=0.1, .y=-0.5
-            },
-            .col=(cog_color) {
-            .r=1,.g=1,.b=1,.a=1
-            }
-            });
-    cog_list_append(&platforms, &(platform) {
-            .sid=pl_1
-            });
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
 
-    cog_rect_id pl_2 = cog_rect_add();
-    cog_rect_set(pl_2, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.1, .h=PLATFORM_HEIGHT
-            },
-            .rot=COG_PI/2,
-            .pos=(cog_pos2) {
-            .x=0.9, .y=-0.5
-            },
-            .col=(cog_color) {
-            .r=1,.g=1,.b=1,.a=1
-            }
-            });
-    cog_list_append(&platforms, &(platform) {
-            .sid=pl_2
-            });
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
 
 
-    cog_rect* pl_0_r = cog_rect_get(pl_0);
-    cog_rect* pl_1_r = cog_rect_get(pl_1);
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
 
-    // Death traps
-    cog_list_init(&traps, sizeof(trap));
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
 
-    cog_rect_id trap_0 = cog_rect_add();
-    cog_rect_set(trap_0, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.35, .h=PLATFORM_HEIGHT*2.0
-            },
-            .rot=COG_PI/2,
-            .pos=(cog_pos2) {
-            .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
-            },
-            .col=(cog_color) {
-            .r=1,.g=0,.b=0,.a=1
-            }
-            });
-    cog_list_append(&traps, &(trap) {
-            .sid=trap_0
-            });
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
 
-    cog_rect_id trap_1 = cog_rect_add();
-    cog_rect_set(trap_1, (cog_rect) {
-            .dim=(cog_dim2) {
-            .w=0.20, .h=PLATFORM_HEIGHT*5.0
-            },
-            .rot=COG_PI/2,
-            .pos=(cog_pos2) {
-            .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-            },
-            .col=(cog_color) {
-            .r=1,.g=0,.b=0,.a=1
-            }
-            });
-    cog_list_append(&traps, &(trap) {
-            .sid=trap_1
-            });
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 1) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/greece.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 2) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/macedonia.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 3) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/serbia.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 4) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/hungary.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 5) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/austria.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    } else if(level == 6) {
+        // Flag
+        f.sid = cog_sprite_add("../assets/flags/germany.png");
+        double w = 0.54;
+        cog_sprite_set(f.sid, (cog_sprite) {
+                .dim=(cog_dim2) {
+                .w=w, .h=w * 0.6
+                },
+                .pos=(cog_pos2) {
+                .x=-0.4, .y=0.5
+                }
+                });
+        cog_sprite* s = cog_sprite_get(f.sid);
+        f.pole_id = cog_rect_add();
+        cog_rect_set(f.pole_id, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.01, .h=0.65
+                },
+                .pos=(cog_pos2) {
+                .x=s->pos.x - s->dim.w, .y=s->pos.y - s->dim.h
+                },
+                .col=(cog_color) {
+                .r=0.5450980392156862,.g=0.27,.b=0.07,.a=1
+                },
+                .rot=COG_PI/2,
+                .layer=0
+                });
+
+        // Platforms
+        cog_list_init(&platforms, sizeof(platform));
+
+        cog_rect_id pl_0 = cog_rect_add();
+        cog_rect_set(pl_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=-0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_0
+                });
+
+        cog_rect_id pl_1 = cog_rect_add();
+        cog_rect_set(pl_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.1, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_1
+                });
+
+        cog_rect_id pl_2 = cog_rect_add();
+        cog_rect_set(pl_2, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.1, .h=PLATFORM_HEIGHT
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=0.9, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=0,.g=1,.b=1,.a=1
+                }
+                });
+        cog_list_append(&platforms, &(platform) {
+                .sid=pl_2
+                });
+
+
+        cog_rect* pl_0_r = cog_rect_get(pl_0);
+        cog_rect* pl_1_r = cog_rect_get(pl_1);
+
+        // Death traps
+        cog_list_init(&traps, sizeof(trap));
+
+        cog_rect_id trap_0 = cog_rect_add();
+        cog_rect_set(trap_0, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_0
+                });
+
+        cog_rect_id trap_1 = cog_rect_add();
+        cog_rect_set(trap_1, (cog_rect) {
+                .dim=(cog_dim2) {
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
+                },
+                .rot=COG_PI/2,
+                .pos=(cog_pos2) {
+                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
+                },
+                .col=(cog_color) {
+                .r=1,.g=0,.b=0,.a=1
+                }
+                });
+        cog_list_append(&traps, &(trap) {
+                .sid=trap_1
+                });
+    }
 }
 
 void update() {
@@ -239,6 +982,14 @@ int main(int argc, char* argv[]) {
                 p.s->vel.x = jumping ? X_SPEED_AIR : X_SPEED;
                 moving = true;
             }
+            if(key == 'n') {
+                level++;
+                init();
+            }
+            if(key == 'p') {
+                level--;
+                init();
+            }
         } 
         if(cog_input_key_depressed()) {
             uint32_t key = cog_input_key_code_depressed();
@@ -260,12 +1011,15 @@ int main(int argc, char* argv[]) {
             if(cog_rect_collides_rect(t->sid, p.sid)) {
                 cog_debugf("COLLISON");
                 p.s->pos = START_POS; 
+                p.s->vel = (cog_vec2){.x=0,.y=0}; 
             }
         }
         // Win condition
         if(p.s->pos.x > 1.0) {
             //cog_clear();
             cog_debugf("Finished level. TODO: Add more levels.");
+            level++;
+            init();
         }
     }
 }
