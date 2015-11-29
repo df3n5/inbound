@@ -17,6 +17,8 @@ static const double GRAVITY = -0.6;
 
 static int32_t level;
 static bool trap_set;
+static bool conveyor_belt;
+static double CONVEYOR_BELT_SPEED = 0.4;
 
 static cog_pos2 START_POS = (cog_pos2) { .x=-0.9, .y=-0.35 };
 
@@ -67,6 +69,35 @@ void init() {
             });
     p.s = cog_rect_get(p.sid);
 
+    if (level >= 4 && level < 6) {
+        if(level == 5) {
+            CONVEYOR_BELT_SPEED = 0.2;
+        }
+        p.s->vel.x = CONVEYOR_BELT_SPEED;
+        conveyor_belt = true;
+    } else {
+        conveyor_belt = false;
+    }
+
+    // Platform
+    cog_rect_id pl_0 = cog_rect_add();
+    cog_rect_set(pl_0, (cog_rect) {
+            .dim=(cog_dim2) {
+            .w=1.0, .h=PLATFORM_HEIGHT
+            },
+            .rot=COG_PI/2,
+            .pos=(cog_pos2) {
+            .x=0.0, .y=-0.5
+            },
+            .col=(cog_color) {
+            .r=1,.g=1,.b=1,.a=1
+            }
+            });
+
+    cog_list_append(&platforms, &(platform) {
+            .sid=pl_0
+            });
+
     if(level == 0) {
         // Flag
         f.sid = cog_sprite_add("../assets/flags/turkey.png");
@@ -99,11 +130,11 @@ void init() {
         cog_rect_id pl_0 = cog_rect_add();
         cog_rect_set(pl_0, (cog_rect) {
                 .dim=(cog_dim2) {
-                .w=0.1, .h=PLATFORM_HEIGHT
+                .w=0.4, .h=PLATFORM_HEIGHT
                 },
                 .rot=COG_PI/2,
                 .pos=(cog_pos2) {
-                .x=-0.9, .y=-0.5
+                .x=-0.6, .y=-0.5
                 },
                 .col=(cog_color) {
                 .r=1,.g=1,.b=1,.a=1
@@ -117,11 +148,11 @@ void init() {
         cog_rect_id pl_1 = cog_rect_add();
         cog_rect_set(pl_1, (cog_rect) {
                 .dim=(cog_dim2) {
-                .w=0.1, .h=PLATFORM_HEIGHT
+                .w=0.4, .h=PLATFORM_HEIGHT
                 },
                 .rot=COG_PI/2,
                 .pos=(cog_pos2) {
-                .x=0.1, .y=-0.5
+                .x=0.6, .y=-0.5
                 },
                 .col=(cog_color) {
                 .r=1,.g=1,.b=1,.a=1
@@ -131,24 +162,6 @@ void init() {
                 .sid=pl_1
                 });
 
-        cog_rect_id pl_2 = cog_rect_add();
-        cog_rect_set(pl_2, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.1, .h=PLATFORM_HEIGHT
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=0.9, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=1,.b=1,.a=1
-                }
-                });
-        cog_list_append(&platforms, &(platform) {
-                .sid=pl_2
-                });
-
-
         cog_rect* pl_0_r = cog_rect_get(pl_0);
         cog_rect* pl_1_r = cog_rect_get(pl_1);
 
@@ -157,7 +170,7 @@ void init() {
         cog_rect_id trap_0 = cog_rect_add();
         cog_rect_set(trap_0, (cog_rect) {
                 .dim=(cog_dim2) {
-                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                .w=0.15, .h=PLATFORM_HEIGHT*2.0
                 },
                 .rot=COG_PI/2,
                 .pos=(cog_pos2) {
@@ -171,22 +184,6 @@ void init() {
                 .sid=trap_0
                 });
 
-        cog_rect_id trap_1 = cog_rect_add();
-        cog_rect_set(trap_1, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.20, .h=PLATFORM_HEIGHT*5.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_1
-                });
     } else if(level == 1) {
         // Flag
         f.sid = cog_sprite_add("../assets/flags/greece.png");
@@ -238,11 +235,11 @@ void init() {
         cog_rect_id pl_1 = cog_rect_add();
         cog_rect_set(pl_1, (cog_rect) {
                 .dim=(cog_dim2) {
-                .w=0.1, .h=PLATFORM_HEIGHT
+                .w=0.6, .h=PLATFORM_HEIGHT
                 },
                 .rot=COG_PI/2,
                 .pos=(cog_pos2) {
-                .x=0.1, .y=-0.5
+                .x=0.4, .y=-0.5
                 },
                 .col=(cog_color) {
                 .r=1,.g=1,.b=1,.a=1
@@ -252,24 +249,6 @@ void init() {
                 .sid=pl_1
                 });
 
-        cog_rect_id pl_2 = cog_rect_add();
-        cog_rect_set(pl_2, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.1, .h=PLATFORM_HEIGHT
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=0.9, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=0,.g=1,.b=1,.a=1
-                }
-                });
-        cog_list_append(&platforms, &(platform) {
-                .sid=pl_2
-                });
-
-
         cog_rect* pl_0_r = cog_rect_get(pl_0);
         cog_rect* pl_1_r = cog_rect_get(pl_1);
 
@@ -277,11 +256,11 @@ void init() {
         cog_rect_id trap_0 = cog_rect_add();
         cog_rect_set(trap_0, (cog_rect) {
                 .dim=(cog_dim2) {
-                .w=0.35, .h=PLATFORM_HEIGHT*2.0
+                .w=0.20, .h=PLATFORM_HEIGHT*5.0
                 },
                 .rot=COG_PI/2,
                 .pos=(cog_pos2) {
-                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
+                .x=(pl_0_r->pos.x) + 0.4, .y=-0.5
                 },
                 .col=(cog_color) {
                 .r=1,.g=0,.b=0,.a=1
@@ -289,23 +268,6 @@ void init() {
                 });
         cog_list_append(&traps, &(trap) {
                 .sid=trap_0
-                });
-
-        cog_rect_id trap_1 = cog_rect_add();
-        cog_rect_set(trap_1, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.20, .h=PLATFORM_HEIGHT*5.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_1
                 });
     } else if(level == 2) {
         // Flag
@@ -381,7 +343,7 @@ void init() {
                 .x=0.9, .y=-0.5
                 },
                 .col=(cog_color) {
-                .r=0,.g=1,.b=1,.a=1
+                .r=1,.g=1,.b=1,.a=1
                 }
                 });
         cog_list_append(&platforms, &(platform) {
@@ -500,7 +462,7 @@ void init() {
                 .x=0.9, .y=-0.5
                 },
                 .col=(cog_color) {
-                .r=0,.g=1,.b=1,.a=1
+                .r=1,.g=1,.b=1,.a=1
                 }
                 });
         cog_list_append(&platforms, &(platform) {
@@ -512,39 +474,24 @@ void init() {
         cog_rect* pl_1_r = cog_rect_get(pl_1);
 
         // Death traps
-        cog_rect_id trap_0 = cog_rect_add();
-        cog_rect_set(trap_0, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.35, .h=PLATFORM_HEIGHT*2.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_0
-                });
-
-        cog_rect_id trap_1 = cog_rect_add();
-        cog_rect_set(trap_1, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.20, .h=PLATFORM_HEIGHT*5.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_1
-                });
+        for(int i=0;i < 5;i++) {
+            cog_rect_id t = cog_rect_add();
+            cog_rect_set(t, (cog_rect) {
+                    .dim=(cog_dim2) {
+                    .w=0.05, .h=PLATFORM_HEIGHT*6.0
+                    },
+                    .rot=COG_PI/2,
+                    .pos=(cog_pos2) {
+                    .x=(pl_0_r->pos.x) + (i+1) * 0.3, .y=-0.5
+                    },
+                    .col=(cog_color) {
+                    .r=1,.g=0,.b=0,.a=1
+                    }
+                    });
+            cog_list_append(&traps, &(trap) {
+                    .sid=t
+                    });
+        }
     } else if(level == 4) {
         // Flag
         f.sid = cog_sprite_add("../assets/flags/hungary.png");
@@ -619,7 +566,7 @@ void init() {
                 .x=0.9, .y=-0.5
                 },
                 .col=(cog_color) {
-                .r=0,.g=1,.b=1,.a=1
+                .r=1,.g=1,.b=1,.a=1
                 }
                 });
         cog_list_append(&platforms, &(platform) {
@@ -631,39 +578,24 @@ void init() {
         cog_rect* pl_1_r = cog_rect_get(pl_1);
 
         // Death traps
-        cog_rect_id trap_0 = cog_rect_add();
-        cog_rect_set(trap_0, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.35, .h=PLATFORM_HEIGHT*2.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_0
-                });
-
-        cog_rect_id trap_1 = cog_rect_add();
-        cog_rect_set(trap_1, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.20, .h=PLATFORM_HEIGHT*5.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_1
-                });
+        for(int i=0;i < 2;i++) {
+            cog_rect_id t = cog_rect_add();
+            cog_rect_set(t, (cog_rect) {
+                    .dim=(cog_dim2) {
+                    .w=0.05, .h=PLATFORM_HEIGHT*6.0
+                    },
+                    .rot=COG_PI/2,
+                    .pos=(cog_pos2) {
+                    .x=(pl_0_r->pos.x) + (i+1) * 0.6, .y=-0.5
+                    },
+                    .col=(cog_color) {
+                    .r=1,.g=0,.b=0,.a=1
+                    }
+                    });
+            cog_list_append(&traps, &(trap) {
+                    .sid=t
+                    });
+        }
     } else if(level == 5) {
         // Flag
         f.sid = cog_sprite_add("../assets/flags/austria.png");
@@ -738,7 +670,7 @@ void init() {
                 .x=0.9, .y=-0.5
                 },
                 .col=(cog_color) {
-                .r=0,.g=1,.b=1,.a=1
+                .r=1,.g=1,.b=1,.a=1
                 }
                 });
         cog_list_append(&platforms, &(platform) {
@@ -750,39 +682,25 @@ void init() {
         cog_rect* pl_1_r = cog_rect_get(pl_1);
 
         // Death traps
-        cog_rect_id trap_0 = cog_rect_add();
-        cog_rect_set(trap_0, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.35, .h=PLATFORM_HEIGHT*2.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_0_r->pos.x + pl_1_r->pos.x) / 2.0, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_0
-                });
-
-        cog_rect_id trap_1 = cog_rect_add();
-        cog_rect_set(trap_1, (cog_rect) {
-                .dim=(cog_dim2) {
-                .w=0.20, .h=PLATFORM_HEIGHT*5.0
-                },
-                .rot=COG_PI/2,
-                .pos=(cog_pos2) {
-                .x=(pl_1_r->pos.x) + 0.4, .y=-0.5
-                },
-                .col=(cog_color) {
-                .r=1,.g=0,.b=0,.a=1
-                }
-                });
-        cog_list_append(&traps, &(trap) {
-                .sid=trap_1
-                });
+        for(int i=0;i < 5;i++) {
+            if(i == 2) continue;
+            cog_rect_id t = cog_rect_add();
+            cog_rect_set(t, (cog_rect) {
+                    .dim=(cog_dim2) {
+                    .w=0.01, .h=PLATFORM_HEIGHT*2.0
+                    },
+                    .rot=COG_PI/2,
+                    .pos=(cog_pos2) {
+                    .x=(pl_0_r->pos.x) + (i+1) * 0.3, .y=-0.5
+                    },
+                    .col=(cog_color) {
+                    .r=1,.g=0,.b=0,.a=1
+                    }
+                    });
+            cog_list_append(&traps, &(trap) {
+                    .sid=t
+                    });
+        }
     } else if(level == 6) {
         // Flag
         f.sid = cog_sprite_add("../assets/flags/germany.png");
@@ -934,20 +852,25 @@ int main(int argc, char* argv[]) {
                 p.s->vel.y = JUMP_SPEED;
                 jumping = true;
                 jump_time = 0;
-                if(p.s->vel.x > 0.001) p.s->vel.x = X_SPEED_AIR;
-                if(p.s->vel.x < -0.001) p.s->vel.x = -X_SPEED_AIR;
+                if(!conveyor_belt) {
+                    if(p.s->vel.x > 0.001) p.s->vel.x = X_SPEED_AIR;
+                    if(p.s->vel.x < -0.001) p.s->vel.x = -X_SPEED_AIR;
+                }
             }
             if(key == 'r') {
                 level = 0;
                 init();
             }
-            if(key == 'a') {
-                p.s->vel.x = jumping ? -X_SPEED_AIR : -X_SPEED;
-                moving = true;
-            }
-            if(key == 'd') {
-                p.s->vel.x = jumping ? X_SPEED_AIR : X_SPEED;
-                moving = true;
+            // Cannot move left and right on those levels
+            if (! conveyor_belt) {
+                if(key == 'a') {
+                    p.s->vel.x = jumping ? -X_SPEED_AIR : -X_SPEED;
+                    moving = true;
+                }
+                if(key == 'd') {
+                    p.s->vel.x = jumping ? X_SPEED_AIR : X_SPEED;
+                    moving = true;
+                }
             }
             if(key == 'n') {
                 level++;
@@ -965,26 +888,30 @@ int main(int argc, char* argv[]) {
             }
         }
         if(!moving) {
-            if(fabs(p.s->vel.x) > 0.01) {
-                if(p.s->vel.x > 0.0) p.s->vel.x -= X_FRICTION;
-                else p.s->vel.x += X_FRICTION;
-            } else {
-                p.s->vel.x = 0.0;
+            if(!conveyor_belt) {
+                if(fabs(p.s->vel.x) > 0.01) {
+                    if(p.s->vel.x > 0.0) p.s->vel.x -= X_FRICTION;
+                    else p.s->vel.x += X_FRICTION;
+                } else {
+                    p.s->vel.x = 0.0;
+                }
             }
         }
         
         COG_LIST_FOREACH(&traps) {
             trap* t = (trap*)curr->data;
             if(cog_rect_collides_rect(t->sid, p.sid)) {
-                cog_debugf("COLLISON");
                 p.s->pos = START_POS; 
                 p.s->vel = (cog_vec2){.x=0,.y=0}; 
+                if(conveyor_belt) {
+                    p.s->vel.x = CONVEYOR_BELT_SPEED;
+                }
+                //init();
             }
         }
         // Win condition
         if(p.s->pos.x > 1.0) {
             //cog_clear();
-            cog_debugf("Finished level. TODO: Add more levels.");
             level++;
             init();
         }
