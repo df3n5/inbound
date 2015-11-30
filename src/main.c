@@ -20,8 +20,6 @@ static bool trap_set;
 static bool conveyor_belt;
 static double CONVEYOR_BELT_SPEED = 0.4;
 
-static cog_pos2 START_POS = (cog_pos2) { .x=-0.9, .y=-0.35 };
-
 typedef struct player {
     //cog_sprite* s;
     cog_rect* s;
@@ -56,6 +54,8 @@ void init() {
     //p.sid = cog_rect_add("../assets/c0.png");
     // Player
     p.sid = cog_rect_add();
+    cog_pos2 START_POS = (cog_pos2) { .x=-0.9, .y=-0.35 };
+
     cog_rect_set(p.sid, (cog_rect) {
             .pos=START_POS,
             .dim=(cog_dim2) {
@@ -901,6 +901,7 @@ int main(int argc, char* argv[]) {
         COG_LIST_FOREACH(&traps) {
             trap* t = (trap*)curr->data;
             if(cog_rect_collides_rect(t->sid, p.sid)) {
+                cog_pos2 START_POS = (cog_pos2) { .x=-0.9, .y=-0.35 };
                 p.s->pos = START_POS; 
                 p.s->vel = (cog_vec2){.x=0,.y=0}; 
                 if(conveyor_belt) {
