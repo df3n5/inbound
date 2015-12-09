@@ -72,6 +72,8 @@ void init() {
     if (level >= 4 && level < 6) {
         if(level == 5) {
             CONVEYOR_BELT_SPEED = 0.2;
+        } else {
+            CONVEYOR_BELT_SPEED = 0.4;
         }
         p.s->vel.x = CONVEYOR_BELT_SPEED;
         conveyor_belt = true;
